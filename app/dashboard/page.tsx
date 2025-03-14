@@ -49,6 +49,7 @@ export default function Dashboard() {
       {repos.length === 0 ? (
         <p>Loading...</p>
       ) : (
+        <>
         <ul>
           {repos.map((repo: any) => (
             <li key={repo.id}>
@@ -56,6 +57,7 @@ export default function Dashboard() {
             </li>
           ))}
         </ul>
+        <p>{session.accessToken}</p></>
       )}
     </div>
   );
