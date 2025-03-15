@@ -10,8 +10,8 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid()) // Unique user ID
-  name      String?  // Optional username (GitHub login)
-  githubId  String   @unique // GitHub User ID (must be unique)
+  name      String  @unique
+  discordId String?
   avatar    String?  // GitHub profile picture URL
   createdAt DateTime @default(now()) // Timestamp for user creation
 }
