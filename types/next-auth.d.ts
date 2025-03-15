@@ -7,10 +7,12 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
+      githubId?: string | null; 
+      avatar?: string | null; 
     };
   }
 
   interface JWT {
-    accessToken?: string;  // Add accessToken to the JWT
+    accessToken?: string; 
   }
 }

@@ -19,7 +19,7 @@ export default function Dashboard() {
         });
 
         if (!response.ok) {
-          throw new Error(`GitHub API error: ${response.statusText}`);
+          return;
         }
 
         const data = await response.json();
