@@ -22,14 +22,16 @@ export const authOptions: NextAuthOptions = {
       }
       if (profile) {
         token.username = profile.login; // GitHub username
+        token.image = profile.avatar_url; // GitHub avatar
       }
       return token;
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
-      if (session.user) {
-        session.user.username = token.username as string;
-      }
+      session.user = {
+        username: typeof token.username === 'string' ? token.username : null, 
+        image: session.user.image, // Keep image from session
+      };
       return session;
     },
     
@@ -56,18 +58,14 @@ export const authOptions: NextAuthOptions = {
 
         // Ensure profile exists before inserting into DB
         if (profile) {
-          const email = profile.email || `${profile.id}@github.com`; // Use GitHub ID as fallback email
-          
           await prisma.user.upsert({
-            where: { email },
+            where: { githubId: profile.id.toString() }, // Use GitHub ID instead of email
             update: { 
-              name: profile.name, 
-              githubId: profile.id.toString(),
-              avatar: profile.avatar_url 
+              name: profile.login, // Use GitHub username as name
+              avatar: profile.avatar_url,
             },
             create: {
-              name: profile.name,
-              email: email,  // Ensure email is never null
+              name: profile.login,
               githubId: profile.id.toString(),
               avatar: profile.avatar_url,
             },
