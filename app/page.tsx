@@ -71,6 +71,16 @@ export default function Home() {
         setDiscordConnect(true); // ✅ Corrected: Set to true
         localStorage.setItem('discord_id',"true");
       }
+      const backend_url = process.env.BACKEND_URL || "http://localhost:4000";
+      console.log(backend_url)
+     try {
+      await axios.post(`${backend_url}/discord/authentication`,{discord_id:discordId,username:usernameGithub})
+     } catch (error) {
+      console.log(error)
+     }
+
+
+
       return alert(response.data.message)
 
     } catch (error) {
