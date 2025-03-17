@@ -79,7 +79,10 @@ export default function Home() {
       console.log(error)
      }
 
-     window.location.href = "https://discord.com/oauth2/authorize?client_id=1350408211936710676";
+     window.open(
+      "https://discord.com/oauth2/authorize?client_id=1350408211936710676",
+      "_blank"
+    );
 
       return alert(response.data.message)
 
