@@ -3,11 +3,22 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import RepoTiles from "./components/RepoTiles";
+import { RiDiscordFill } from "react-icons/ri";
+import axios from "axios";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [discordId, setDiscordId] = useState("");
+  const [discordConnect, setDiscordConnect] = useState<boolean>(false);
+
+  useEffect(() => {
+    const storedDiscordId = localStorage.getItem("discord_id");
+    setDiscordConnect(!!storedDiscordId); // Convert to boolean
+  }, []);
+  
+  const [showModal, setShowModal] = useState(false);
   const [, setError] = useState("");
 
   useEffect(() => {
@@ -40,6 +51,49 @@ export default function Home() {
     fetchRepos();
   }, [session]);
 
+
+  const handleDiscordClick = async ()=>{
+    try {
+      if(localStorage.getItem('discord_id')){
+        return alert("Discord ID is already set");
+      }
+      if(discordId.length < 17)return alert("Discord ID is too short !! ")
+      const usernameGithub = session?.user.username;
+      if(!usernameGithub){
+        return alert("Username not found");
+      }
+      const response = await axios.post(`/api/discord/add_discord_id`,{
+        discordId,
+        username:usernameGithub
+      });
+
+      if(response.data.status === 200){
+        setDiscordConnect(true); // ✅ Corrected: Set to true
+        localStorage.setItem('discord_id',"true");
+      }
+      const backend_url = process.env.BACKEND_URL || "http://localhost:4000";
+      console.log(backend_url)
+     try {
+      await axios.post(`${backend_url}/discord/authentication`,{discord_id:discordId,username:usernameGithub})
+     } catch (error) {
+      console.log(error)
+     }
+
+     window.location.href = "https://discord.com/oauth2/authorize?client_id=1350408211936710676";
+
+      return alert(response.data.message)
+
+    } catch (error) {
+      console.log(error)
+      alert("Try again later")
+    }finally{
+      setShowModal(false);
+    }
+  }
+
+
+
+
   if (status === "loading") {
     return <div className="flex items-center justify-center h-screen text-gray-400 animate-pulse">Loading session...</div>;
   }
@@ -60,12 +114,53 @@ export default function Home() {
           <h1 className="text-xl font-semibold text-gray-200">Welcome, {session.user?.username}!</h1>
           <p className="text-sm text-gray-400">Your GitHub repositories:</p>
         </div>
+        
+        <div className="w-full max-w-5xl mt-6">
+          <RepoTiles repos={repos} loading={loading} />
+        </div>
       </div>
+        
+      {/* Connect with Discord Button */}
+      {!discordConnect && !session.user.discordId && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="mt-6 flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-xl shadow-lg transition hover:bg-white/20 active:scale-95"
+        >
+          <RiDiscordFill size={24} className="text-blue-500" />
+          Connect with Discord
+        </button>
+      )}
 
-      {/* Repository Tiles */}
-      <div className="w-full max-w-5xl mt-6">
-        <RepoTiles repos={repos} loading={loading} />
-      </div>
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-[#1A1A1A] border border-gray-700 p-6 rounded-lg w-96 text-center shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-200 mb-4">Enter your Discord ID</h2>
+            <input
+              type="text"
+              className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:ring focus:ring-blue-500 outline-none"
+              placeholder="e.g., username#1234"
+              value={discordId}
+              onChange={(e) => setDiscordId(e.target.value)}
+            />
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  handleDiscordClick();
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

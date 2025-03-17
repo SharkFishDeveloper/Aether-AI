@@ -13,28 +13,40 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET || "asfasfasfasff", 
+  secret: process.env.NEXTAUTH_SECRET || "iamsecret",
 
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
       }
+
       if (profile) {
-        token.username = profile.login; // GitHub username
-        token.image = profile.avatar_url; // GitHub avatar
+        token.username = profile.login;
+        token.image = profile.avatar_url;
+
+        // Fetch user from the database to get the discordId
+        const user = await prisma.user.findUnique({
+          where: { name: profile.login },
+          select: { discordId: true },
+        });
+
+        token.discordId = user?.discordId || null; // Store discordId in token
       }
+
       return token;
     },
+
     async session({ session, token }) {
       session.accessToken = token.accessToken as string;
       session.user = {
-        username: typeof token.username === 'string' ? token.username : null, 
-        image: session.user.image, // Keep image from session
+        username: token.username as string,
+        image: token.image as string,
+        discordId: token.discordId as string, // Use the discordId from token
       };
       return session;
     },
-    
+
     async signIn({ account, profile }) {
       console.log("Account details:", account);
       if (!account?.access_token) {
@@ -50,27 +62,25 @@ export const authOptions: NextAuthOptions = {
             Accept: "application/vnd.github.v3+json",
           },
         }).then((res) => res.json());
-        
+
         if (!installations.installations || installations.installations.length === 0) {
           console.log("No GitHub Apps installed");
           return `https://github.com/apps/Aether-server/installations/new`;
         }
 
-        // Ensure profile exists before inserting into DB
-        if (profile) {
-          await prisma.user.upsert({
-            where: { githubId: profile.id.toString() }, // Use GitHub ID instead of email
-            update: { 
-              name: profile.login, // Use GitHub username as name
-              avatar: profile.avatar_url,
-            },
-            create: {
-              name: profile.login,
-              githubId: profile.id.toString(),
-              avatar: profile.avatar_url,
-            },
-          });
-        }
+        // Upsert user in the database
+        await prisma.user.upsert({
+          where: { name: profile?.login },
+          update: {
+            avatar: profile?.avatar_url,
+          },
+          create: {
+            name: profile?.login as string,
+            avatar: profile?.avatar_url,
+            discordId: null, // Initially set to null, user can link Discord later
+          },
+        });
+
       } catch (error) {
         console.error("Error in signIn callback:", error);
         return false;
@@ -83,27 +93,3 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as POST, handler as GET };
-
-
-// async redirect({ url, baseUrl }) {
-//   try {
-//     const cleanedUrl = new URL(url, baseUrl);
-//     cleanedUrl.search = ""; // Removes query params
-//     return cleanedUrl.toString();
-//   } catch (error) {
-//     console.error("Redirect error:", error);
-//     return baseUrl;
-//   }
-// },
-// cookies: {
-//   pkceCodeVerifier: {
-//     name: 'next-auth.pkce.code_verifier',
-//     options: {
-//       httpOnly: true,
-//       sameSite: 'none',
-//       path: '/',
-//       secure: process.env.NODE_ENV === 'production',
-//     },
-//   },
-
-// },
