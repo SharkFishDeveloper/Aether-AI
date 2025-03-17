@@ -36,7 +36,7 @@ export default function Home() {
           },
         });
 
-        if (!response.ok) throw new Error("Failed to fetch repositories.");
+        if (!response.ok) return alert("Failed to fetch repositories.")
 
         const data = await response.json();
         setRepos(data);

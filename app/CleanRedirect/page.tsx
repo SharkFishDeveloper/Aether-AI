@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 const CleanRedirect = () => {
   const router = useRouter();
@@ -23,4 +23,13 @@ const CleanRedirect = () => {
   return null; // This component only modifies the URL
 };
 
-export default CleanRedirect;
+const CleanRedirectWrapper = () => (
+  <Suspense fallback={null}>
+    <CleanRedirect />
+  </Suspense>
+);
+
+export default CleanRedirectWrapper;
+
+
+
