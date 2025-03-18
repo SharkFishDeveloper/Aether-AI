@@ -72,17 +72,17 @@ export default function Home() {
         setDiscordConnect(true); // ✅ Corrected: Set to true
         localStorage.setItem('discord_id',"true");
       }
+      
+      window.open(
+       "https://discord.com/oauth2/authorize?client_id=1350408211936710676",
+        "_blank"        );
       const backend_url = BACKEND_URL || "http://localhost:4000";
+      await new Promise(resolve => setTimeout(resolve, 45000));
      try {
       await axios.post(`${backend_url}/discord/authentication`,{discord_id:discordId,username:usernameGithub})
      } catch (error) {
       console.log(error)
      }
-
-     window.open(
-      "https://discord.com/oauth2/authorize?client_id=1350408211936710676",
-      "_blank"
-    );
 
       return alert(response.data.message)
 
