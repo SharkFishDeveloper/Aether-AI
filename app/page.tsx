@@ -76,14 +76,7 @@ export default function Home() {
       window.open(
        "https://discord.com/oauth2/authorize?client_id=1350408211936710676",
         "_blank"        );
-      const backend_url = BACKEND_URL || "http://localhost:4000";
-      await new Promise(resolve => setTimeout(resolve, 45000));
-     try {
-      await axios.post(`${backend_url}/discord/authentication`,{discord_id:discordId,username:usernameGithub})
-     } catch (error) {
-      console.log(error)
-     }
-
+      
       return alert(response.data.message)
 
     } catch (error) {
@@ -93,6 +86,24 @@ export default function Home() {
       setShowModal(false);
     }
   }
+
+  useEffect(() => {
+    const authenticateDiscord = async () => {
+      if (discordConnect && discordId && session?.user.username) {
+        const backend_url = BACKEND_URL || "http://localhost:4000";
+        try {
+          await axios.post(`${backend_url}/discord/authentication`, {
+            discord_id: discordId,
+            username: session?.user.username,
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+
+    authenticateDiscord();
+  }, [discordConnect, discordId, session?.user.username]);
 
 
 
