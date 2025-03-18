@@ -1,1 +1,1 @@
-export const BACKEND_URL = "http://13.126.145.188:3000"
+export const BACKEND_URL = "https://aether-server.onrender.com"
