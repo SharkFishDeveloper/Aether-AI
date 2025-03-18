@@ -51,6 +51,7 @@ export default function Home() {
     fetchRepos();
   }, [session]);
 
+  console.log(process.env.BACKEND_URL)
 
   const handleDiscordClick = async ()=>{
     try {
@@ -72,7 +73,6 @@ export default function Home() {
         localStorage.setItem('discord_id',"true");
       }
       const backend_url = process.env.BACKEND_URL || "http://localhost:4000";
-      console.log(backend_url)
      try {
       await axios.post(`${backend_url}/discord/authentication`,{discord_id:discordId,username:usernameGithub})
      } catch (error) {
