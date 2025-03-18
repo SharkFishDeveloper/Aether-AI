@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import RepoTiles from "./components/RepoTiles";
 import { RiDiscordFill } from "react-icons/ri";
 import axios from "axios";
+import { BACKEND_URL } from "@/util/Backend_url";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -51,7 +52,6 @@ export default function Home() {
     fetchRepos();
   }, [session]);
 
-  console.log(process.env.BACKEND_URL)
 
   const handleDiscordClick = async ()=>{
     try {
@@ -72,7 +72,7 @@ export default function Home() {
         setDiscordConnect(true); // ✅ Corrected: Set to true
         localStorage.setItem('discord_id',"true");
       }
-      const backend_url = process.env.BACKEND_URL || "http://localhost:4000";
+      const backend_url = BACKEND_URL || "http://localhost:4000";
      try {
       await axios.post(`${backend_url}/discord/authentication`,{discord_id:discordId,username:usernameGithub})
      } catch (error) {
